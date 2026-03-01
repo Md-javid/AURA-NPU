@@ -101,7 +101,7 @@ PORT: int = _int("AURA_PORT", 8765)
 # ─────────────────────────────────────────────────────────────
 
 OLLAMA_HOST: str = _str("OLLAMA_HOST", "http://localhost:11434")
-OLLAMA_MODEL: str = _str("OLLAMA_MODEL", "llava")
+OLLAMA_MODEL: str = _str("OLLAMA_MODEL", "moondream")  # 1.6B vision model — ~15s on CPU vs ~5min for llava
 
 # Guard: OFFLINE mode must only allow localhost Ollama
 if OFFLINE and OLLAMA_HOST and not OLLAMA_HOST.startswith("http://localhost"):
@@ -117,7 +117,7 @@ if OFFLINE and OLLAMA_HOST and not OLLAMA_HOST.startswith("http://localhost"):
 MAX_TOKENS: int = _int("AURA_MAX_TOKENS", 600)
 ECO_MAX_TOKENS: int = _int("AURA_ECO_MAX_TOKENS", 200)
 ECO_IMAGE_SCALE: float = _float("AURA_ECO_IMAGE_SCALE", 0.5)
-OLLAMA_TIMEOUT_S: float = _float("AURA_OLLAMA_TIMEOUT", 300.0)  # llava cold-start ~2-3 min
+OLLAMA_TIMEOUT_S: float = _float("AURA_OLLAMA_TIMEOUT", 600.0)  # llava vision cold-start can exceed 5 min on CPU
 
 # ─────────────────────────────────────────────────────────────
 #  Hardware / VitisAI

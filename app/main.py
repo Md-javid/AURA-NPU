@@ -730,7 +730,7 @@ window.auraTrace = function(stage){
 async def _probe_ollama() -> bool:
     """Return True if the Ollama server is reachable on OLLAMA_HOST."""
     try:
-        async with httpx.AsyncClient(timeout=2) as c:
+        async with httpx.AsyncClient(timeout=5) as c:
             r = await c.get(OLLAMA_HOST + "/api/tags")
             return r.status_code == 200
     except Exception:
@@ -1817,7 +1817,14 @@ async def _call_ollama(image_b64: Optional[str], prompt: str, system: str) -> st
     }
     if image_b64:
         payload["images"] = [image_b64]
-    timeout = _cfg.OLLAMA_TIMEOUT_S  # default 300s — llava needs time on cold start
+    # Use a long read timeout for vision inference (llava w/ image can take 5-10 min
+    # on CPU-only hardware). Keep connect/pool timeouts short to fail-fast on outages.
+    timeout = httpx.Timeout(
+        connect=5.0,
+        read=_cfg.OLLAMA_TIMEOUT_S,
+        write=30.0,
+        pool=5.0,
+    )
     async with httpx.AsyncClient(timeout=timeout) as c:
         r = await c.post(OLLAMA_HOST + "/api/generate", json=payload)
     if r.status_code != 200:
