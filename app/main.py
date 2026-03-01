@@ -850,12 +850,17 @@ def _make_eco_image(image_b64: Optional[str]) -> Optional[str]:
 def _model_health_items() -> list[dict]:
     """Live health check results for display."""
     items = []
-    items.append({
-        "icon": "\u26a1" if state.npu_active else "\u26aa",
-        "label": "NPU",
-        "value": "XDNA\u00b2 Active" if state.npu_active else "CPU Mode",
-        "ok": state.npu_active,
-    })
+    # NPU item — distinguish AMD vs Intel vs unknown
+    npu_status = state.engine_status.get("npu_status", {})
+    hw_vendor   = npu_status.get("hardware_vendor", "")
+    if state.npu_active:
+        npu_icon, npu_val, npu_ok = "\u26a1", "XDNA\u00b2 Active", True
+    elif hw_vendor == "Intel":
+        cpu_name = npu_status.get("cpu_name", "Intel")
+        npu_icon, npu_val, npu_ok = "\u2139", "Intel AI Boost (OpenVINO needed)", False
+    else:
+        npu_icon, npu_val, npu_ok = "\u26aa", "AMD NPU not detected", False
+    items.append({"icon": npu_icon, "label": "NPU", "value": npu_val, "ok": npu_ok})
     items.append({
         "icon": "\U0001f7e2" if state.ollama_active else "\U0001f7e1",
         "label": "Ollama",

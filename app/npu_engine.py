@@ -156,8 +156,35 @@ class AuraNPUEngine:
             "vitisai_ep_available": False,
             "lemonade_available": LEMONADE_AVAILABLE,
             "ort_available": ORT_AVAILABLE,
+            "hardware_vendor": "unknown",
+            "cpu_name": "",
             "errors": [],
         }
+
+        # ── Detect CPU vendor (Intel vs AMD) ──────────────────────────────────
+        # VitisAI EP is AMD-silicon-exclusive. Bail early with an informative
+        # (non-error) message when running on Intel hardware.
+        try:
+            import subprocess as _sp
+            _cpu = _sp.check_output(
+                'powershell -Command "(Get-CimInstance Win32_Processor).Name"',
+                shell=True, timeout=5,
+            ).decode(errors="ignore").strip()
+            status["cpu_name"] = _cpu
+            if "Intel" in _cpu:
+                status["hardware_vendor"] = "Intel"
+                _msg = (
+                    f"Intel CPU detected: {_cpu}. "
+                    "VitisAI EP requires AMD Ryzen AI 300 Series (XDNA 2) hardware. "
+                    "Inference falls back to Ollama (Tier 2) or PIL (Tier 3)."
+                )
+                logger.info(_msg)
+                status["errors"].append(_msg)
+                return status   # no AMD artefacts to check — exit early
+            elif "AMD" in _cpu:
+                status["hardware_vendor"] = "AMD"
+        except Exception:
+            pass  # non-critical — proceed to AMD checks
 
         # Check for VitisAI EP availability in onnxruntime
         if ORT_AVAILABLE:
