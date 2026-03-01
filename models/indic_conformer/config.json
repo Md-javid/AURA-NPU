@@ -1,0 +1,129 @@
+{
+  "model_name": "indicconformer-hybrid-rnnt-large-amd-int8",
+  "base_model": "ai4bharat/indicconformer_stt_hi_hybrid_rnnt_large",
+  "quantization": "AMD Quark W8A8 INT8 PTQ",
+  "architecture": "ConformerEncoder + RNNT/CTC Decoder",
+  "task": "automatic-speech-recognition",
+  "modality": "audio",
+
+  "onnx_opset": 17,
+  "target_hardware": "AMD Ryzen AI 300 Series NPU (XDNA 2)",
+  "execution_provider": "VitisAIExecutionProvider",
+
+  "audio_config": {
+    "sample_rate": 16000,
+    "num_channels": 1,
+    "encoding": "float32",
+    "normalization": "mean_std",
+    "feature_type": "log_mel_spectrogram",
+    "n_mels": 80,
+    "n_fft": 512,
+    "hop_length": 160,
+    "win_length": 400,
+    "window": "hann",
+    "pre_emphasis": 0.97
+  },
+
+  "input_config": {
+    "audio_features": {
+      "name": "audio_signal",
+      "shape": [1, 80, -1],
+      "dtype": "float32",
+      "description": "Log-mel spectrogram [batch, n_mels, time_steps]"
+    },
+    "audio_length": {
+      "name": "length",
+      "shape": [1],
+      "dtype": "int64",
+      "description": "Number of valid time steps in audio_signal"
+    }
+  },
+
+  "output_config": {
+    "ctc_logits": {
+      "name": "log_probs",
+      "shape": [1, -1, 5000],
+      "dtype": "float32",
+      "description": "CTC log probabilities over vocabulary"
+    },
+    "encoder_output": {
+      "name": "encoded",
+      "shape": [1, -1, 512],
+      "dtype": "float32",
+      "description": "Conformer encoder representations (for RNNT)"
+    }
+  },
+
+  "model_params": {
+    "encoder_type": "ConformerEncoder",
+    "d_model": 512,
+    "num_layers": 18,
+    "num_attention_heads": 8,
+    "conv_kernel_size": 31,
+    "ff_expansion_factor": 4,
+    "dropout": 0.0,
+    "attention_type": "rel_pos",
+    "decoder_type": "RNNT+CTC",
+    "vocab_size": 5000,
+    "blank_token_id": 4999,
+    "tokenizer": "sentencepiece",
+    "tokenizer_casing": "none"
+  },
+
+  "supported_languages": {
+    "as": {"name": "Assamese", "script": "Bengali", "model_id": "as"},
+    "bn": {"name": "Bengali", "script": "Bengali", "model_id": "bn"},
+    "bho": {"name": "Bhojpuri", "script": "Devanagari", "model_id": "bho"},
+    "doi": {"name": "Dogri", "script": "Devanagari", "model_id": "doi"},
+    "gu": {"name": "Gujarati", "script": "Gujarati", "model_id": "gu"},
+    "hi": {"name": "Hindi", "script": "Devanagari", "model_id": "hi"},
+    "kn": {"name": "Kannada", "script": "Kannada", "model_id": "kn"},
+    "ks": {"name": "Kashmiri", "script": "Arabic", "rtl": true, "model_id": "ks"},
+    "kok": {"name": "Konkani", "script": "Devanagari", "model_id": "kok"},
+    "mai": {"name": "Maithili", "script": "Devanagari", "model_id": "mai"},
+    "ml": {"name": "Malayalam", "script": "Malayalam", "model_id": "ml"},
+    "mni": {"name": "Manipuri", "script": "Meitei", "model_id": "mni"},
+    "mr": {"name": "Marathi", "script": "Devanagari", "model_id": "mr"},
+    "ne": {"name": "Nepali", "script": "Devanagari", "model_id": "ne"},
+    "or": {"name": "Odia", "script": "Odia", "model_id": "or"},
+    "pa": {"name": "Punjabi", "script": "Gurmukhi", "model_id": "pa"},
+    "sa": {"name": "Sanskrit", "script": "Devanagari", "model_id": "sa"},
+    "sat": {"name": "Santali", "script": "Ol Chiki", "model_id": "sat"},
+    "sd": {"name": "Sindhi", "script": "Arabic", "rtl": true, "model_id": "sd"},
+    "ta": {"name": "Tamil", "script": "Tamil", "model_id": "ta"},
+    "te": {"name": "Telugu", "script": "Telugu", "model_id": "te"},
+    "ur": {"name": "Urdu", "script": "Arabic", "rtl": true, "model_id": "ur"}
+  },
+
+  "quantization_details": {
+    "weight_dtype": "int8",
+    "activation_dtype": "uint8",
+    "calibration_method": "PowerOfTwoMethod.MinMax",
+    "calibration_samples_per_lang": 64,
+    "calibration_languages": ["hi", "ta", "bn", "te"],
+    "quantized_ops": ["MatMul", "Conv"],
+    "excluded_ops": ["LayerNormalization", "Softmax"],
+    "quantization_script": "scripts/quantize_conformer.py"
+  },
+
+  "performance": {
+    "npu_5sec_latency_ms": 22,
+    "npu_10sec_latency_ms": 41,
+    "cpu_5sec_latency_ms": 185,
+    "cpu_10sec_latency_ms": 340,
+    "speedup_factor": 8.4,
+    "model_size_mb_fp32": 350,
+    "model_size_mb_int8": 180
+  },
+
+  "aura_npu": {
+    "role": "asr_encoder",
+    "version": "1.0.0",
+    "streaming_mode": "ctc",
+    "non_streaming_mode": "rnnt",
+    "compliance": {
+      "dpdp_act_2023": true,
+      "cloud_calls": 0
+    }
+  }
+}

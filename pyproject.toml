@@ -1,0 +1,153 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aura-npu"
+version = "4.1.0"
+description = "Neuro-inclusive cognitive assistant running 100% on AMD Ryzen AI 300 NPU"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Aura-NPU Team", email = "hackathon@aura-npu.example"}
+]
+keywords = [
+    "amd", "npu", "ryzen-ai", "cognitive-assistant", "neurodiverse",
+    "indic-languages", "adhd", "accessibility", "vitisai", "lemonade-sdk"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Education",
+    "Topic :: Accessibility",
+]
+requires-python = ">=3.11"
+
+dependencies = [
+    "nicegui>=1.4.0,<2.0.0",
+    "onnxruntime-vitisai==1.17.0",
+    "httpx>=0.25.0",
+    "lemonade-sdk>=0.5.0",
+    "onnxruntime-genai>=0.4.0",
+    "Pillow>=10.0.0",
+    "numpy>=1.24.0,<2.0.0",
+    "mss>=9.0.0",
+    "opencv-python-headless>=4.8.0",
+    "sounddevice>=0.4.6",
+    "scipy>=1.10.0",
+    "librosa>=0.10.0",
+    "soundfile>=0.12.0",
+    "sentencepiece>=0.1.99",
+    "transformers>=4.40.0,<5.0.0",
+    "indic-nlp-library>=0.91",
+    "pywin32>=306",
+    "python-dateutil>=2.8.2",
+    "psutil>=5.9.0",
+    "rich>=13.0.0",
+    "click>=8.1.0",
+    "pypdf>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.5.0",
+    "ruff>=0.3.0",
+]
+quantize = [
+    "amd-quark>=0.8.0",
+]
+
+[project.scripts]
+aura-npu = "app.main:main"
+aura-benchmark = "scripts.benchmark:main"
+aura-quantize = "scripts.quantize:main"
+aura-download = "scripts.download_models:main"
+
+[project.urls]
+Homepage = "https://github.com/amd-hackathon/aura-npu"
+Documentation = "https://github.com/amd-hackathon/aura-npu/docs"
+Repository = "https://github.com/amd-hackathon/aura-npu"
+"Bug Tracker" = "https://github.com/amd-hackathon/aura-npu/issues"
+"AMD Hackathon" = "https://www.amd.com/en/developer/slingshot.html"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "models/*/model*.onnx",
+    "models/*/model*.data",
+    ".npu_cache/",
+]
+
+# ─────────────────────────── Ruff Configuration ───────────────────────────────
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+select = ["E", "F", "I", "N", "B", "UP"]
+ignore = [
+    "E501",   # Line too long (handled by formatter)
+    "B008",   # Function calls in default args (common in NiceGUI)
+]
+exclude = [
+    ".venv",
+    "__pycache__",
+    "models/",
+    ".npu_cache/",
+]
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["N802", "N803"]   # Allow non-lowercase test method names
+
+# ─────────────────────────── Pytest Configuration ─────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+python_files = ["test_*.py"]
+python_classes = ["Test"]
+python_functions = ["test_*"]
+markers = [
+    "npu: marks tests requiring AMD NPU hardware (deselect with -m 'not npu')",
+    "slow: marks tests with >5s runtime",
+    "demo: marks tests that only run in demo mode",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:onnxruntime",
+    "ignore::UserWarning:sounddevice",
+]
+
+# ─────────────────────────── Coverage Configuration ───────────────────────────
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "app/__init__.py",
+    "app/utils/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+show_missing = true
+fail_under = 70
+
+# ─────────────────────────── MyPy Configuration ───────────────────────────────
+[tool.mypy]
+python_version = "3.11"
+strict = false
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true   # ONNX stubs not always available
+exclude = ["models/", ".npu_cache/", ".venv/"]

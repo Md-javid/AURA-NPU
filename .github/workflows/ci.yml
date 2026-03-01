@@ -1,0 +1,112 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#  .github/workflows/ci.yml — Aura-NPU Continuous Integration
+#
+#  Runs on every push / PR:
+#    1. Lint with ruff
+#    2. Type-check with mypy
+#    3. Import smoke-test
+#    4. Unit tests (no model weights required)
+#
+#  No cloud API keys.  No model downloads.  Fully offline-safe CI.
+# ══════════════════════════════════════════════════════════════════════════════
+
+name: CI
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    name: Lint · Type-check · Test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      # ── Checkout ───────────────────────────────────────────────────────────
+      - uses: actions/checkout@v4
+
+      # ── Python setup ───────────────────────────────────────────────────────
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      # ── Install CPU-safe dependencies ──────────────────────────────────────
+      - name: Install dependencies (CPU-safe)
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.docker.txt
+          pip install ruff mypy pytest pytest-asyncio
+
+      # ── Lint ───────────────────────────────────────────────────────────────
+      - name: Ruff lint
+        run: ruff check app/ scripts/ tests/ --output-format=github
+
+      # ── Type check ─────────────────────────────────────────────────────────
+      - name: Mypy type check
+        run: mypy app/ --ignore-missing-imports --no-error-summary
+        continue-on-error: true        # advisory — not blocking until fully typed
+
+      # ── Config smoke-test ──────────────────────────────────────────────────
+      - name: Config import smoke-test
+        run: |
+          python -c "
+          import os
+          os.environ['AURA_OFFLINE'] = 'true'
+          os.environ['AURA_FORCE_CPU'] = 'true'
+          from app import config
+          config.log_config()
+          print('config OK')
+          "
+
+      # ── Telemetry module smoke-test ────────────────────────────────────────
+      - name: Telemetry import smoke-test
+        run: |
+          python -c "
+          from app.telemetry import AuraTelemetry
+          t = AuraTelemetry()
+          snap = t.snapshot
+          print('telemetry OK — fields:', list(snap.__dataclass_fields__.keys()))
+          "
+
+      # ── Unit tests ─────────────────────────────────────────────────────────
+      - name: Run tests
+        run: |
+          pytest tests/ -v --tb=short \
+            --ignore=tests/test_npu_engine.py \
+            --ignore=tests/test_multimodal.py
+        continue-on-error: true        # tests may require hardware stubs
+
+  # ── Docker build check ─────────────────────────────────────────────────────
+  docker-build:
+    name: Docker build check
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f docker/Dockerfile \
+            -t aura-npu:ci-${{ github.sha }} \
+            .
+
+      - name: Smoke-test container
+        run: |
+          docker run --rm \
+            -e AURA_FORCE_CPU=true \
+            -e AURA_OFFLINE=true \
+            aura-npu:ci-${{ github.sha }} \
+            python -c "from app import config; config.log_config(); print('container OK')"

@@ -1,0 +1,148 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# Aura-NPU .gitignore
+# AMD Slingshot 2026 Hackathon
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────── Python ───────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# ─────────────────────────── Virtual Environments ─────────────────────────────
+.venv/
+venv/
+env/
+.env/
+ENV/
+
+# ─────────────────────────── AMD NPU / VitisAI Cache ──────────────────────────
+# NPU compiled kernel cache — large binaries, device-specific
+.npu_cache/
+*.xclbin.cache
+vaip_*_cache/
+aie_compilation_cache/
+
+# AMD Quark intermediate files
+quark_quant_work/
+calibration_cache/
+*.quant_calibration
+
+# AMD µProf output
+*.uProfCLI/
+npu_profile*.json
+benchmark_power*.csv
+
+# ─────────────────────────── Model Files ──────────────────────────────────────
+# Large ONNX model files — download separately (see models/README.md)
+models/**/*.onnx
+models/**/*.onnx.data
+models/**/*.bin
+models/**/*.safetensors
+
+# FP32 intermediate models (before quantization)
+models/**/*_fp32.onnx
+models/**/*_bf16.onnx
+
+# Tokenizer files (download from HuggingFace)
+models/**/*.sentencepiece
+models/**/*.model
+models/**/*.tiktoken
+
+# Keep config JSONs (these are committed, part of repo)
+!models/**/*.json
+!models/**/*.md
+
+# ─────────────────────────── Aura-NPU Runtime Data ────────────────────────────
+# User session integrity logs — personal data, never committed
+integrity_logs/
+*.jsonl
+*.integrity_report.html
+*.integrity_report.json
+
+# Screen capture temp files
+.aura_captures/
+capture_*.png
+screenshot_*.png
+
+# ─────────────────────────── Calibration Data ─────────────────────────────────
+data/calibration_audio/
+data/calibration_images/
+data/ncert_dataset/
+
+# ─────────────────────────── IDE & Editor Files ───────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─────────────────────────── Testing & Coverage ───────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# ─────────────────────────── Documentation Build ──────────────────────────────
+docs/_build/
+docs/site/
+site/
+
+# ─────────────────────────── Environment Variables ────────────────────────────
+.env
+.env.local
+.env.production
+*.secrets
+
+# ─────────────────────────── Temporary Files ──────────────────────────────────
+*.tmp
+*.temp
+*.log
+*.pid
+tmp/
+temp/
+
+# Aura-NPU app runtime logs
+app_out.log
+app_err.log
+logs/
+
+# ─────────────────────────── Docker generated ─────────────────────────────────
+# Compose override files with local secrets
+docker-compose.override.yml
+.env.docker
+
+# ─────────────────────────── Windows OS Files ─────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ─────────────────────────── Large Binaries ───────────────────────────────────
+*.dll
+*.pdb
+*.lib
+*.exp
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NOTE: Intentionally committed (not ignored):
+#   models/**/*.json       — Model metadata configs
+#   models/**/*.md         — Model documentation
+#   models/vaip_config.json
+#   scripts/               — Quantization and benchmark scripts
+#   tests/                 — Test suite
+#   docs/                  — Architecture and benchmark docs
+#   requirements.txt
+#   pyproject.toml
+# ══════════════════════════════════════════════════════════════════════════════

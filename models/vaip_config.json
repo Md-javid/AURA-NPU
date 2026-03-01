@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "VitisAI Execution Provider runtime configuration for Aura-NPU",
+  "version": "1.0",
+  "target_device": "AMD Ryzen AI 300 Series (Strix Point / Strix Halo)",
+  "npu_architecture": "XDNA 2",
+
+  "session": {
+    "num_of_dpu_runners": 4,
+    "enable_tiling": true,
+    "cacheKey": "aura_npu_gemma3_v1",
+    "cacheDir": ".npu_cache",
+    "config_file": "models/vaip_config.json"
+  },
+
+  "xclbin": {
+    "path": "C:\\Windows\\System32\\AMD\\xclbin\\AMD_AIE2P_Nx4_Overlay.xclbin",
+    "fallback_path": "C:\\Windows\\System32\\AMD\\xclbin\\AMD_AIE2P_4x4_Overlay.xclbin",
+    "description": "AIE2+ (XDNA 2) overlay binary for Strix Point/Halo NPU"
+  },
+
+  "quantization": {
+    "weight_dtype": "int8",
+    "activation_dtype": "int8",
+    "calibration_method": "PowerOfTwoMethod.MinMax",
+    "symmetric_weights": true,
+    "asymmetric_activations": true
+  },
+
+  "operators": {
+    "quantized_op_types": [
+      "MatMul",
+      "Gemm",
+      "Conv",
+      "ConvTranspose",
+      "LSTM",
+      "GRU"
+    ],
+    "excluded_op_types": [
+      "LayerNormalization",
+      "Softmax",
+      "Sigmoid",
+      "Tanh",
+      "Div",
+      "Sqrt"
+    ],
+    "force_cpu_ops": [
+      "Reshape",
+      "Gather",
+      "ScatterElements",
+      "DynamicQuantizeLinear"
+    ]
+  },
+
+  "optimization": {
+    "optimization_level": 3,
+    "enable_subgraph_fusion": true,
+    "enable_attention_fusion": true,
+    "enable_layernorm_fusion": false,
+    "enable_quant_node_folding": true,
+    "tiling_config": {
+      "enable": true,
+      "strategy": "auto",
+      "max_tile_size_kb": 32
+    }
+  },
+
+  "memory": {
+    "external_data_format": true,
+    "kv_cache_max_tokens": 2048,
+    "memory_arena_cfg": {
+      "device_type": "npu",
+      "arena_extend_strategy": "kSameAsRequested",
+      "initial_chunk_size_bytes": 134217728,
+      "max_dead_bytes_per_chunk": 134217728
+    }
+  },
+
+  "logging": {
+    "level": "WARNING",
+    "enable_npu_profiling": false,
+    "profiling_output": "npu_profile.json"
+  },
+
+  "hardware_requirements": {
+    "min_npu_tops": 25,
+    "required_driver_version": "31.0.21",
+    "required_xrt_version": "2.17.0",
+    "supported_processors": [
+      "AMD Ryzen AI 9 HX 375",
+      "AMD Ryzen AI 9 HX 370",
+      "AMD Ryzen AI 9 365",
+      "AMD Ryzen AI 7 350",
+      "AMD Ryzen AI 5 340",
+      "AMD Ryzen AI Max+ PRO 395",
+      "AMD Ryzen AI Max+ 395"
+    ]
+  }
+}

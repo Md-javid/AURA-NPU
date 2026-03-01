@@ -1,0 +1,79 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#  .dockerignore — Aura-NPU
+#  Excludes everything unnecessary from the Docker build context.
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Model weights — NEVER bake into image (too large; volume-mounted at runtime)
+models/**/*.onnx
+models/**/*.onnx.data
+models/**/*.bin
+models/**/*.safetensors
+models/**/*.pt
+models/**/*.pth
+models/**/*.h5
+
+# AMD NPU caches
+.npu_cache/
+*.xclbin.cache
+vaip_*_cache/
+quark_quant_work/
+calibration_cache/
+
+# Logs
+*.log
+logs/
+app_out.log
+app_err.log
+
+# Git metadata
+.git/
+.gitignore
+
+# CI / GitHub Actions
+.github/
+
+# Docs (not needed at runtime)
+docs/
+
+# Tests (not needed at runtime)
+tests/
+
+# Scripts (not needed at runtime)
+scripts/
+
+# Dev tooling config
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+.env
+.env.*
+*.secrets
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo

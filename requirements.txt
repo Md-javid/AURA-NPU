@@ -1,0 +1,89 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# Aura-NPU Requirements — Native Windows (NPU + Ollama + PIL tiers)
+# AMD Slingshot 2026 Hackathon — 100% On-Device Cognitive Assistant
+#
+# Python compatibility:
+#   3.11  — REQUIRED for onnxruntime-vitisai (NPU tier)
+#   3.13  — Supported for Ollama + PIL tiers (no VitisAI EP)
+#
+# Install (Windows native):
+#   pip install -r requirements.txt
+#   pip install onnxruntime-vitisai==1.17.0 --extra-index-url https://pypi.amd.com/simple
+#
+# For Docker / CPU-only use:
+#   pip install -r requirements.docker.txt
+# ══════════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────── UI Framework ─────────────────────────────────────
+nicegui>=1.4.0,<2.0.0           # Desktop overlay + web UI
+
+# ─────────────────────────── HTTP Client ──────────────────────────────────────
+httpx>=0.25.0                   # Async HTTP for Ollama API calls (localhost only)
+
+# ─────────────────────────── AMD NPU Runtime ──────────────────────────────────
+# onnxruntime-vitisai must be installed INSTEAD of plain onnxruntime.
+# Install separately from AMD PyPI index:
+#   pip install onnxruntime-vitisai==1.17.0 --extra-index-url https://pypi.amd.com/simple
+onnxruntime-vitisai==1.17.0     # VitisAI Execution Provider for XDNA 2 NPU
+
+# AMD Lemonade SDK — LLM deployment abstraction for NPU
+lemonade-sdk>=0.5.0
+
+# AMD Quark — INT8 PTQ quantization toolkit (used by scripts/quantize.py)
+amd-quark>=0.8.0
+
+# ─────────────────────────── ONNX GenAI ───────────────────────────────────────
+onnxruntime-genai>=0.4.0        # Required by Lemonade SDK for OrtGenAi tools
+
+# ─────────────────────────── Vision & Image Processing ────────────────────────
+Pillow>=10.0.0                  # Image loading, resizing, format conversion
+numpy>=1.24.0,<2.0.0            # Array operations (pin <2.0 for ONNX compat.)
+mss>=9.0.0                      # Multi-monitor screen capture
+opencv-python-headless>=4.8.0   # Image preprocessing (headless = no GUI deps)
+
+# ─────────────────────────── Audio Processing ─────────────────────────────────
+sounddevice>=0.4.6              # Audio I/O (microphone + TTS playback)
+scipy>=1.10.0                   # Signal processing
+librosa>=0.10.0                 # Audio feature extraction (log-mel spectrograms)
+soundfile>=0.12.0               # WAV file I/O
+
+# ─────────────────────────── NLP & Text Processing ────────────────────────────
+sentencepiece>=0.1.99           # SentencePiece tokenizer
+transformers>=4.40.0,<5.0.0     # Tokenizer utilities (HuggingFace)
+indic-nlp-library>=0.91         # Indic G2P, text normalisation (AI4Bharat)
+
+# ─────────────────────────── Windows APIs ─────────────────────────────────────
+pywin32>=306                    # Windows Performance Counters (NPU % utilisation)
+
+# ─────────────────────────── Data & Utilities ─────────────────────────────────
+python-dateutil>=2.8.2          # Date/time formatting for integrity logs
+psutil>=5.9.0                   # System resource monitoring
+rich>=13.0.0                    # Terminal formatting for benchmark output
+click>=8.1.0                    # CLI argument parsing for scripts
+
+# ─────────────────────────── Document Processing ─────────────────────────────
+pypdf>=4.0.0                    # PDF text extraction (NCERT textbook scanning)
+python-docx>=1.0.0              # DOCX document support
+
+# ─────────────────────────── Development Tools ────────────────────────────────
+pytest>=7.4.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+ruff>=0.3.0                     # Fast Python linter
+mypy>=1.5.0                     # Static type checker
+
+# ══════════════════════════════════════════════════════════════════════════════
+# HARDWARE NOTES
+# ══════════════════════════════════════════════════════════════════════════════
+# Required hardware: AMD Ryzen AI 300 Series (Strix Point or Strix Halo)
+# Required OS: Windows 11 23H2+ (Build 22631+)
+# Required driver: AMD Adrenalin Edition with NPU component >= 31.0.21
+# Required XRT: Xilinx Runtime >= 2.17.0
+#
+# NPU xclbin path (auto-detected by VitisAI EP):
+#   C:\Windows\System32\AMD\xclbin\AMD_AIE2P_Nx4_Overlay.xclbin
+#
+# Install verification:
+#   python -c "import onnxruntime; print(onnxruntime.get_available_providers())"
+#   # Should include: 'VitisAIExecutionProvider'
+# ══════════════════════════════════════════════════════════════════════════════

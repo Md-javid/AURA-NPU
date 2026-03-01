@@ -1,0 +1,118 @@
+{
+  "model_name": "svara-tts-indic-22lang-int8",
+  "base_model": "svara-tts-v1",
+  "quantization": "AMD Quark W8A8 INT8 PTQ",
+  "architecture": "TransformerDecoder + HiFi-GAN Vocoder",
+  "task": "text-to-speech",
+  "modality": "audio",
+
+  "onnx_opset": 17,
+  "target_hardware": "AMD Ryzen AI 300 Series NPU (XDNA 2)",
+  "execution_provider": "VitisAIExecutionProvider",
+
+  "text_input": {
+    "name": "phoneme_ids",
+    "shape": [1, -1],
+    "dtype": "int64",
+    "description": "Phoneme token IDs from G2P module"
+  },
+
+  "speaker_embedding": {
+    "name": "speaker_id",
+    "shape": [1],
+    "dtype": "int64",
+    "description": "Speaker index (0-21, one per language)"
+  },
+
+  "mel_output": {
+    "name": "mel_spectrogram",
+    "shape": [1, 80, -1],
+    "dtype": "float32",
+    "description": "Predicted mel spectrogram [batch, n_mels, time_frames]"
+  },
+
+  "vocoder": {
+    "model": "hifigan_v1",
+    "input": {
+      "name": "mel_spectrogram",
+      "shape": [1, 80, -1],
+      "dtype": "float32"
+    },
+    "output": {
+      "name": "waveform",
+      "shape": [1, 1, -1],
+      "dtype": "float32",
+      "description": "Raw audio waveform at 22050Hz"
+    },
+    "sample_rate": 22050,
+    "hop_size": 256,
+    "win_size": 1024,
+    "fft_size": 1024,
+    "n_mels": 80,
+    "f_min": 0,
+    "f_max": null
+  },
+
+  "tts_model_params": {
+    "encoder_hidden_size": 256,
+    "decoder_hidden_size": 512,
+    "num_decoder_layers": 6,
+    "num_attention_heads": 8,
+    "phoneme_vocab_size": 512,
+    "speaker_embedding_dim": 64,
+    "duration_predictor_hidden": 256,
+    "pitch_predictor_hidden": 256
+  },
+
+  "speakers": {
+    "hi": {"speaker_id": 0, "name": "Ananya", "gender": "female", "language": "Hindi", "accent": "Standard"},
+    "bn": {"speaker_id": 1, "name": "Priya", "gender": "female", "language": "Bengali", "accent": "Dhaka/Kolkata"},
+    "te": {"speaker_id": 2, "name": "Lakshmi", "gender": "female", "language": "Telugu", "accent": "Standard"},
+    "mr": {"speaker_id": 3, "name": "Saee", "gender": "female", "language": "Marathi", "accent": "Pune"},
+    "ta": {"speaker_id": 4, "name": "Kaviya", "gender": "female", "language": "Tamil", "accent": "Chennai"},
+    "ur": {"speaker_id": 5, "name": "Ayesha", "gender": "female", "language": "Urdu", "accent": "Lucknow"},
+    "gu": {"speaker_id": 6, "name": "Dhvani", "gender": "female", "language": "Gujarati", "accent": "Ahmedabad"},
+    "kn": {"speaker_id": 7, "name": "Kaveri", "gender": "female", "language": "Kannada", "accent": "Bengaluru"},
+    "ml": {"speaker_id": 8, "name": "Nila", "gender": "female", "language": "Malayalam", "accent": "Thiruvananthapuram"},
+    "or": {"speaker_id": 9, "name": "Subhadra", "gender": "female", "language": "Odia", "accent": "Bhubaneswar"},
+    "pa": {"speaker_id": 10, "name": "Gurpreet", "gender": "female", "language": "Punjabi", "accent": "Ludhiana"},
+    "as": {"speaker_id": 11, "name": "Parijat", "gender": "female", "language": "Assamese", "accent": "Guwahati"},
+    "mai": {"speaker_id": 12, "name": "Mithila", "gender": "female", "language": "Maithili", "accent": "Darbhanga"},
+    "sa": {"speaker_id": 13, "name": "Devika", "gender": "female", "language": "Sanskrit", "accent": "Vedic"},
+    "kok": {"speaker_id": 14, "name": "Rekha", "gender": "female", "language": "Konkani", "accent": "Goa"},
+    "ne": {"speaker_id": 15, "name": "Shraddha", "gender": "female", "language": "Nepali", "accent": "Kathmandu"},
+    "sd": {"speaker_id": 16, "name": "Zulekha", "gender": "female", "language": "Sindhi", "accent": "Hyderabad"},
+    "doi": {"speaker_id": 17, "name": "Chandra", "gender": "female", "language": "Dogri", "accent": "Jammu"},
+    "mni": {"speaker_id": 18, "name": "Thoibi", "gender": "female", "language": "Manipuri", "accent": "Imphal"},
+    "ks": {"speaker_id": 19, "name": "Sakeena", "gender": "female", "language": "Kashmiri", "accent": "Srinagar"},
+    "sat": {"speaker_id": 20, "name": "Sukhmay", "gender": "female", "language": "Santali", "accent": "Jharkhand"},
+    "bho": {"speaker_id": 21, "name": "Kalawati", "gender": "female", "language": "Bhojpuri", "accent": "Varanasi"}
+  },
+
+  "g2p_config": {
+    "hi": "indicnlp",
+    "ta": "indicnlp",
+    "others": "espeak_indic",
+    "fallback": "character_level"
+  },
+
+  "performance": {
+    "npu_5sec_speech_ms": 29,
+    "npu_10sec_speech_ms": 51,
+    "cpu_5sec_speech_ms": 138,
+    "cpu_10sec_speech_ms": 270,
+    "speedup_factor": 4.7,
+    "decoder_model_size_mb": 185,
+    "vocoder_model_size_mb": 95,
+    "total_size_mb": 280
+  },
+
+  "aura_npu": {
+    "role": "tts_synthesizer",
+    "version": "1.0.0",
+    "compliance": {
+      "dpdp_act_2023": true,
+      "cloud_calls": 0
+    }
+  }
+}

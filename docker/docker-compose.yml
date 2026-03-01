@@ -1,0 +1,75 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#  Aura-NPU  docker-compose.yml
+#  Offline cognitive AI stack — CPU mode (Ollama on host)
+#
+#  Usage:
+#    docker compose -f docker/docker-compose.yml up --build
+#
+#  Prerequisites:
+#    • Ollama running on host: ollama serve && ollama pull llava
+#    • Place model configs under ./models/ (weights downloaded at runtime)
+# ══════════════════════════════════════════════════════════════════════════════
+
+version: "3.9"
+
+services:
+  aura-npu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: aura-npu:latest
+    container_name: aura-npu
+
+    # ── Ports ────────────────────────────────────────────────────────────────
+    ports:
+      - "8080:8080"
+
+    # ── Volumes ──────────────────────────────────────────────────────────────
+    # Model configs are read-only; weights (*.onnx) are never committed to Git
+    # and are downloaded to ./models/ by scripts/download_models.py
+    volumes:
+      - ../models:/app/models:ro
+      - aura-logs:/app/logs
+
+    # ── Environment ──────────────────────────────────────────────────────────
+    environment:
+      AURA_OFFLINE: "true"
+      AURA_FORCE_CPU: "true"
+      AURA_ECO_MODE: "${AURA_ECO_MODE:-false}"
+      AURA_LOG_LEVEL: "${AURA_LOG_LEVEL:-INFO}"
+      AURA_HOST: "0.0.0.0"
+      AURA_PORT: "8080"
+      # host.docker.internal resolves to the Docker host on Docker Desktop
+      OLLAMA_HOST: "${OLLAMA_HOST:-http://host.docker.internal:11434}"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-llava}"
+      AURA_MAX_TOKENS: "${AURA_MAX_TOKENS:-600}"
+
+    # ── Resource limits ───────────────────────────────────────────────────────
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: "4G"
+
+    # ── Restart policy ────────────────────────────────────────────────────────
+    restart: unless-stopped
+
+    # ── Health ────────────────────────────────────────────────────────────────
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8080')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+    # ── Logging ───────────────────────────────────────────────────────────────
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ── Named volumes ─────────────────────────────────────────────────────────────
+volumes:
+  aura-logs:
